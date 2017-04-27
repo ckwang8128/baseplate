@@ -440,11 +440,16 @@ class RemoteRecorder(BaseBatchRecorder):
 
     def flush_func(self, spans):
         """Send a set of spans to remote collector."""
-        self.session.post(
-            self.endpoint,
-            data=json.dumps(spans),
-            headers={
-                'Content-Type': 'application/json',
-            },
-            timeout=1,
-        )
+        try:
+            self.session.post(
+                self.endpoint,
+                data=json.dumps(spans),
+                headers={
+                    'Content-Type': 'application/json',
+                },
+                timeout=1,
+            )
+        except requests.exceptions.ReadTimeout:
+            # Zipkin server did not respond
+            #  Fail gracefully
+            pass
